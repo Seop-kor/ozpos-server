@@ -1,9 +1,9 @@
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 
 import { AuthService } from './auth.service';
-import { AuthPayloadObject } from './dto/auth-payload.object';
+import { AuthPayloadObject } from './dto/authPayload.object';
 import { LoginInput } from './dto/login.input';
-import { RefreshTokenInput } from './dto/refresh-token.input';
+import { RefreshTokenPayloadInput } from './dto/refreshToken.input';
 
 @Resolver()
 export class AuthResolver {
@@ -16,8 +16,13 @@ export class AuthResolver {
 
   @Mutation(() => AuthPayloadObject)
   refreshToken(
-    @Args('input') input: RefreshTokenInput,
+    @Args('input') input: RefreshTokenPayloadInput,
   ): Promise<AuthPayloadObject> {
     return this.authService.refreshToken(input.refreshToken);
+  }
+
+  @Mutation(() => Boolean)
+  logout(@Args('input') input: RefreshTokenPayloadInput): Promise<boolean> {
+    return this.authService.logout(input.refreshToken);
   }
 }

@@ -149,3 +149,67 @@ describe('AuthService.refreshToken', () => {
     ).rejects.toBeInstanceOf(InvalidTokenException);
   });
 });
+
+describe('AuthService.logout', () => {
+  it('deletes the stored refresh token and returns true', async () => {
+    const { refreshTokenRepository, service } = createAuthFixture();
+    const loginResult = await service.login('owner@ozpos.test', 'password123!');
+
+    await expect(service.logout(loginResult.refreshToken)).resolves.toBe(true);
+    await expect(
+      refreshTokenRepository.findByUserId('dummy-user-1'),
+    ).resolves.toBeNull();
+  });
+
+  it('prevents refreshing with a logged out refresh token', async () => {
+    const { service } = createAuthFixture();
+    const loginResult = await service.login('owner@ozpos.test', 'password123!');
+
+    await service.logout(loginResult.refreshToken);
+
+    await expect(
+      service.refreshToken(loginResult.refreshToken),
+    ).rejects.toBeInstanceOf(InvalidTokenException);
+  });
+
+  it('throws InvalidTokenException when logging out with a rotated old refresh token', async () => {
+    const { service } = createAuthFixture();
+    const loginResult = await service.login('owner@ozpos.test', 'password123!');
+    await service.refreshToken(loginResult.refreshToken);
+
+    await expect(
+      service.logout(loginResult.refreshToken),
+    ).rejects.toBeInstanceOf(InvalidTokenException);
+  });
+
+  it('throws InvalidTokenException when logging out with an access token', async () => {
+    const { service } = createAuthFixture();
+    const loginResult = await service.login('owner@ozpos.test', 'password123!');
+
+    await expect(
+      service.logout(loginResult.accessToken),
+    ).rejects.toBeInstanceOf(InvalidTokenException);
+  });
+
+  it('throws InvalidTokenException when logging out with malformed token text', async () => {
+    const { service } = createAuthFixture();
+
+    await expect(
+      service.logout('not-a-jwt-token-value'),
+    ).rejects.toBeInstanceOf(InvalidTokenException);
+  });
+
+  it('throws InvalidTokenException when no refresh token is stored', async () => {
+    const { service } = createAuthFixture();
+    const tokenService = new TokenService(
+      new JwtService(),
+      new ConfigService({ JWT_SECRET: 'test-secret' }),
+    );
+    const { refreshToken } =
+      await tokenService.generateAuthTokens('dummy-user-1');
+
+    await expect(service.logout(refreshToken)).rejects.toBeInstanceOf(
+      InvalidTokenException,
+    );
+  });
+});

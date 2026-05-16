@@ -18,4 +18,9 @@ export class InMemoryRefreshTokenRepository {
   findByUserId(userId: string): Promise<RefreshTokenRecord | null> {
     return Promise.resolve(this.records.get(userId) ?? null);
   }
+
+  deleteByUserId(userId: string): Promise<void> {
+    this.records.delete(userId);
+    return Promise.resolve();
+  }
 }

@@ -14,13 +14,14 @@ input LoginInput {
 
 type Mutation {
   login(input: LoginInput!): AuthPayload!
-  refreshToken(input: RefreshTokenInput!): AuthPayload!
+  logout(input: RefreshTokenPayloadInput!): Boolean!
+  refreshToken(input: RefreshTokenPayloadInput!): AuthPayload!
 }
 
 type Query {
   healthCheck: Boolean!
 }
 
-input RefreshTokenInput {
+input RefreshTokenPayloadInput {
   refreshToken: String!
 }
