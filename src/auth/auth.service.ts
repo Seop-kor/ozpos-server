@@ -72,4 +72,17 @@ export class AuthService {
       refreshToken: tokens.refreshToken,
     };
   }
+
+  async logout(refreshToken: string): Promise<boolean> {
+    const { userId } = await this.tokenService.verifyRefreshToken(refreshToken);
+    const storedToken = await this.refreshTokenRepository.findByUserId(userId);
+
+    if (!storedToken || storedToken.token !== refreshToken) {
+      throw new InvalidTokenException();
+    }
+
+    await this.refreshTokenRepository.deleteByUserId(userId);
+
+    return true;
+  }
 }

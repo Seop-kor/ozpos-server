@@ -4,13 +4,16 @@ import { AuthResolver } from '../../src/auth/auth.resolver';
 import { AuthService } from '../../src/auth/auth.service';
 
 describe('AuthResolver', () => {
-  let authService: jest.Mocked<Pick<AuthService, 'login' | 'refreshToken'>>;
+  let authService: jest.Mocked<
+    Pick<AuthService, 'login' | 'refreshToken' | 'logout'>
+  >;
   let resolver: AuthResolver;
 
   beforeEach(async () => {
     authService = {
       login: jest.fn(),
       refreshToken: jest.fn(),
+      logout: jest.fn(),
     };
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -54,5 +57,14 @@ describe('AuthResolver', () => {
     expect(authService.refreshToken).toHaveBeenCalledWith(
       'header.payload.signature',
     );
+  });
+
+  it('delegates logout input to AuthService.logout', async () => {
+    authService.logout.mockResolvedValue(true);
+
+    await expect(
+      resolver.logout({ refreshToken: 'header.payload.signature' }),
+    ).resolves.toBe(true);
+    expect(authService.logout).toHaveBeenCalledWith('header.payload.signature');
   });
 });

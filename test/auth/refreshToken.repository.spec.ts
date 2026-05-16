@@ -44,4 +44,22 @@ describe('InMemoryRefreshTokenRepository', () => {
   it('returns null when user has no stored refresh token', async () => {
     await expect(repository.findByUserId('missing-user')).resolves.toBeNull();
   });
+
+  it('deletes a stored refresh token for a user', async () => {
+    await repository.save({
+      userId: 'dummy-user-1',
+      token: 'refresh-token-1',
+      expiresAt: new Date('2026-05-11T00:00:00.000Z'),
+    });
+
+    await repository.deleteByUserId('dummy-user-1');
+
+    await expect(repository.findByUserId('dummy-user-1')).resolves.toBeNull();
+  });
+
+  it('completes when deleting a user without a stored refresh token', async () => {
+    await expect(
+      repository.deleteByUserId('missing-user'),
+    ).resolves.toBeUndefined();
+  });
 });
